@@ -1,0 +1,150 @@
+1️⃣ Project Structure
+pulseguard-ai/
+│
+├── app.py
+├── bp_model.py
+├── requirements.txt
+└── dataset.csv   (optional if you train model)
+2️⃣ requirements.txt
+
+Create a file named requirements.txt
+
+streamlit
+pandas
+numpy
+scikit-learn
+groq
+python-dotenv
+
+Install with
+
+pip install -r requirements.txt
+3️⃣ bp_model.py (Blood Pressure Prediction Model)
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+import pickle
+
+# Dummy training data
+# age, weight, heart_rate, stress_level
+X = np.array([
+    [25, 60, 70, 2],
+    [35, 75, 80, 5],
+    [45, 85, 90, 7],
+    [55, 90, 95, 8],
+    [30, 65, 75, 3],
+    [50, 88, 92, 7]
+])
+
+# 0 = Normal, 1 = High BP Risk
+y = np.array([0,0,1,1,0,1])
+
+model = LogisticRegression()
+model.fit(X,y)
+
+pickle.dump(model, open("bp_model.pkl","wb"))
+
+Run once:
+
+python bp_model.py
+
+It will create bp_model.pkl
+
+4️⃣ app.py (Main Streamlit Application)
+import streamlit as st
+import pickle
+import numpy as np
+from groq import Groq
+
+# Load model
+model = pickle.load(open("bp_model.pkl","rb"))
+
+# Groq API
+client = Groq(api_key="YOUR_GROQ_API_KEY")
+
+st.title("🩺 PulseGuard AI")
+st.subheader("Intelligent Blood Pressure Prediction System")
+
+st.write("Enter your health details")
+
+age = st.slider("Age",18,80)
+weight = st.slider("Weight (kg)",40,120)
+heart_rate = st.slider("Heart Rate",50,120)
+stress = st.slider("Stress Level (1-10)",1,10)
+
+if st.button("Predict Blood Pressure Risk"):
+
+    data = np.array([[age,weight,heart_rate,stress]])
+
+    prediction = model.predict(data)
+
+    if prediction[0] == 0:
+        result = "Normal Blood Pressure Risk"
+        st.success(result)
+    else:
+        result = "High Blood Pressure Risk"
+        st.error(result)
+
+    # Ask Groq for health advice
+    prompt = f"""
+    A user has {result}.
+    Age: {age}
+    Weight: {weight}
+    Heart Rate: {heart_rate}
+    Stress Level: {stress}
+
+    Give simple health advice to control blood pressure.
+    """
+
+    response = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[{"role":"user","content":prompt}]
+    )
+
+    advice = response.choices[0].message.content
+
+    st.subheader("💡 AI Health Advice")
+    st.write(advice)
+5️⃣ Run the Application
+streamlit run app.py
+
+Open browser:
+
+http://localhost:8501
+6️⃣ Features of PulseGuard AI
+
+✔ Blood pressure risk prediction
+✔ Machine learning model
+✔ Streamlit UI
+✔ AI health suggestions using Groq
+✔ Simple health inputs
+
+7️⃣ Example UI
+PulseGuard AI
+--------------------------------
+
+Age: 35
+Weight: 72
+Heart Rate: 85
+Stress Level: 6
+
+[ Predict Blood Pressure Risk ]
+
+Result:
+⚠ High Blood Pressure Risk
+
+AI Advice:
+Reduce salt intake, exercise daily...
+
+✅ If you want, I can also give:
+
+Full project with dataset
+
+Advanced BP prediction using RandomForest
+
+Beautiful UI dashboard
+
+Real-time charts
+
+Deploy on Streamlit Cloud
+
+Just tell me and I’ll upgrade PulseGuard AI to a professional project.
